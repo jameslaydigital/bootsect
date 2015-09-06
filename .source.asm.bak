@@ -1,0 +1,159 @@
+[bits 16]
+[org 0x7c00]
+BIOS_SEGMENT:    equ 0x7c0
+BIOS_OFFSET:    equ 0x7c00
+LOAD_ADDR:      equ 0x9000
+
+    mov bp, 0x8000      ; set up the stack
+    mov sp, bp          ; relatively out of the way
+
+    ;mov bx, BIOS_OFFSET ; set our offset so we
+    ;mov ds, bx          ; can call our functions.
+    ;xor bx, bx          ; reset bx
+
+    call disk_load      ; load the new instructions
+
+    xor cx, cx
+
+    ;; so now you've verified that you have stuff going on in that range,
+    ;; go ahead an load some instructions.
+
+    jmp LOAD_ADDR
+
+    ;start_mem_view:
+
+    ;mov es, dx
+
+    ;mov bx, LOAD_ADDR
+    ;add bx, cx
+    ;mov ax, [bx]
+    ;call print_char
+
+    ;inc cx
+    ;cmp cx, 100 
+    ;jl start_mem_view
+
+    jmp $
+
+;the_secret : db 'hi', 0
+
+%include "disk_load.asm"
+%include "print.asm"
+
+times 510 - ($ - $$) db 0
+
+seg_two:
+
+dw 0xaa55
+    mov ah, 0x0E
+    mov al, 'h'
+    int 0x10
+
+    ;mov cx, print_j
+    ;sub cx, seg_two
+    ;add cx, LOAD_ADDR
+    mov cx, LOAD_ADDR + print_j - seg_two
+
+    jmp cx
+
+    jmp $
+
+print_j:
+    mov ah, 0x0E
+    mov al, 'k'
+    int 0x10
+    jmp $
+    
+
+the_char: db 'a'
+
+times 2048 db 0xf
+
+;%include "stage_two.asm"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ;call switch_to_pm
+    ;jmp $
+
+;
+;MSG_PROT_MODE:
+;    db '32-bit.', 0
+;%include "print.asm"        ; Re - use our print fxns
+;%include "disk_load.asm"
+;%include "gdt.asm"
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;=============================================================================;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+;[bits 32]
+;%include "print_32.asm"
+;BEGIN_PM:
+;    mov eax, MSG_PROT_MODE
+;    call print_string_32
+;    jmp $
+;
+;switch_to_pm:
+;    cli
+;    lgdt [gdt_descriptor]
+;    mov eax, cr0
+;    or eax, 0x1
+;    mov cr0, eax
+;    jmp CODE_SEG:init_pm
+;
+;init_pm:
+;    ;; we are now theoretically in protected mode.
+;    ;; Let's initialize the registers.
+;    mov ax, DATA_SEG
+;    ;mov ds, ax
+;    ;mov ss, ax
+;    ;mov es, ax
+;    ;mov fs, ax
+;    ;mov gs, ax
+;
+;    mov ebp, 0x90000    ;update the stack position
+;    mov esp, ebp        ;and unify the stack pointer and base pointer.
+;
+;    call BEGIN_PM
+;
+;    jmp $
+;
+;
+;[bits 16]
+;; We know that bios will load only the first 512 - byte sector from the disk ,
+;; so if we purposely add a few more sectors to our code by repeating some
+;; familiar numbers , we can prove to ourselfs that we actually loaded those
+;; additional two sectors from the disk we booted from.
+;times 256 dw 0xdada
+;times 256 dw 0xface
+;        ; Include our new disk_load function
+;        ; Global variables
+;
+;; Bootsector padding
+;times 510 -( $ - $$ ) db 0
+;dw 0xaa55
