@@ -12,16 +12,10 @@ main:
     call set_bg         ;set_bg(color)
     pop ax
 
-    push 9
-    push 9
-    push 9
-    call set_pxl        ;set_pxl(color,x,y)
-    add sp, 2           ;rewinding sp by only 2 bytes because I
-                        ;will reuse the arguments from the stack
-
-    push 8
-    call set_pxl        ;set_pxl, changing only x
-    add sp, 6
+    push 0 
+    push 5
+    call set_character
+    add sp, 4
 
     jmp $
 

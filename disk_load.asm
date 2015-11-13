@@ -31,7 +31,7 @@ disk_error :
     ; Get the status of the last operation.
     xor ax, ax      ; nullify ax
     mov ah, 0x01    ; status fxn
-    mov dl, 0x80    ; 0x80 is our drive
+    ;mov dl, 0x80    ; 0x80 is our drive
     int 0x13        ; call fxn
 
     ;mov ah, 0       ; when we print ax, we only care about the status, 

@@ -57,31 +57,38 @@ set_pxl:
     pop bp  ;return base pointer to original
     ret
 
-;;set_line:
-;;    ;; set_line( color, start_x, start_y, end_x, end_y )
-;;    ;; ...Work In Progress...
-;;
-;;    push bp
-;;    mov bp, sp
-;;
-;;    mov bx, 0xA000
-;;    mov es, bx
-;;    xor bx, bx
-;;
-;;    mov ax, [bp + 8]
-;;    push ax
-;;
-;;    mov ax, [bp + 6]
-;;    push ax
-;;
-;;    mov ax, [bp + 4]
-;;    push ax
-;;
-;;    call set_pxl
-;;    pop ax
-;;    pop ax
-;;    pop ax
-;;
-;;    pop bp
-;;    ret
+set_character:
+    ;; set_title(offset_x, offset_y)
+    push bp
+    mov bp, sp
 
+    mov bx, letter_a
+
+    .loop:
+    push 10
+
+    mov ax, [bp + 4]    ; ax gets arg
+    add ax, [bx]        ; ax += letter_a[bx] 
+    push ax             ; save that number
+
+    add bx, 2           ; c++
+    mov ax, [bp + 6]    ; ax gets arg
+    add ax, [bx]        ; ax += letter_a[bx] 
+    push ax             ; save that number
+
+    call set_pxl
+
+    add sp, 6
+
+    ; if [bx] != 0; jmp .loop
+    add bx, 2           ; c++
+    cmp bx, 0
+    jne .loop
+    .end:
+
+    mov sp, bp
+    pop bp
+    ret
+
+letter_a: dd 9,9, 9, 5, 0, 0
+count: dw 0
