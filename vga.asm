@@ -1,3 +1,15 @@
+;▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+;▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+;▒▒▒▒▒┌─────────────────────────────────┐▒▒▒▒▒▒
+;▒▒▒▒▒│ VGA FUNCTIONS                   │▒▒▒▒▒▒
+;▒▒▒▒▒├─────────────────────────────────┤▒▒▒▒▒▒
+;▒▒▒▒▒│     void set_bg ( color )       │▒▒▒▒▒▒
+;▒▒▒▒▒│     void set_video_mode ()      │▒▒▒▒▒▒
+;▒▒▒▒▒│     void set_pxl ( color, x, y )│▒▒▒▒▒▒
+;▒▒▒▒▒└─────────────────────────────────┘▒▒▒▒▒▒
+;▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+;▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+
 set_bg:
     push bp
     mov bp, sp
@@ -15,58 +27,10 @@ set_bg:
     pop bp
     ret
 
-set_letter_a;
-    ;; set_letter( start_x, start_y, color )
-    push bp
-    mov bp, sp
-    mov bx, 0xA000
-    mov es, bx
-    mov bx, 0
-                        ;; (start_y * 320) + start_x
-    mov cx, [bp + 4]    ;start_x
-    mov dx, [bp + 6]    ;start_y
-    mov ax, 320         ;screen width
-    mul dx              ;multiply by dx
-    add ax, cx
-
-    mov bx, ax
-    mov cx, [bp + 8]    ;color
-    mov [es:bx], cl
-    add cx, 1
-
-    pop bp
-    ret
-
 set_video_mode:
     mov ah, 0x0     ;Set video mode
     mov al, 0x13    ;256-color
     int 0x10
-    ret
-
-set_line:
-    ;; set_line( color, start_x, start_y, end_x, end_y )
-    push bp
-    mov bp, sp
-
-    mov bx, 0xA000
-    mov es, bx
-    xor bx, bx
-
-    mov ax, [bp + 8]
-    push ax
-
-    mov ax, [bp + 6]
-    push ax
-
-    mov ax, [bp + 4]
-    push ax
-
-    call set_pxl
-    pop ax
-    pop ax
-    pop ax
-
-    pop bp
     ret
 
 set_pxl:
@@ -92,3 +56,32 @@ set_pxl:
     mov [es:bx], cl    ; actually write to video mem
     pop bp  ;return base pointer to original
     ret
+
+;;set_line:
+;;    ;; set_line( color, start_x, start_y, end_x, end_y )
+;;    ;; ...Work In Progress...
+;;
+;;    push bp
+;;    mov bp, sp
+;;
+;;    mov bx, 0xA000
+;;    mov es, bx
+;;    xor bx, bx
+;;
+;;    mov ax, [bp + 8]
+;;    push ax
+;;
+;;    mov ax, [bp + 6]
+;;    push ax
+;;
+;;    mov ax, [bp + 4]
+;;    push ax
+;;
+;;    call set_pxl
+;;    pop ax
+;;    pop ax
+;;    pop ax
+;;
+;;    pop bp
+;;    ret
+
