@@ -10,21 +10,24 @@ main:
     push 226
     call set_bg
     pop ax
-    push 5
-    push 5
-    push 5
-    call set_letter_a
-    pop ax
-    pop ax
-    pop ax
+    ;;push 5
+    ;;push 5
+    ;;push 5
+    ;;call set_letter_a
+    ;;pop ax
+    ;;pop ax
+    ;;pop ax
+
+    ;; set_pxl ( color, x, y )
+    push 9
+    push 9
+    push 9
+    call set_pxl
+    add sp, 2
 
     push 8
-    push 8
-    push 8
     call set_pxl
-    pop ax
-    pop ax
-    pop ax
+    add sp, 6
     jmp $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

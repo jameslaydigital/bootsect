@@ -43,7 +43,35 @@ set_video_mode:
     int 0x10
     ret
 
+set_line:
+    ;; set_line( color, start_x, start_y, end_x, end_y )
+    push bp
+    mov bp, sp
+
+    mov bx, 0xA000
+    mov es, bx
+    xor bx, bx
+
+    mov ax, [bp + 8]
+    push ax
+
+    mov ax, [bp + 6]
+    push ax
+
+    mov ax, [bp + 4]
+    push ax
+
+    call set_pxl
+    pop ax
+    pop ax
+    pop ax
+
+    pop bp
+    ret
+
 set_pxl:
+    ;; set_pxl ( color, x, y )
+
     push bp     ;save to return later
     mov bp, sp  ;set base of stack
     mov bx, 0xA000  ;VGA video mem starts at 0xA0000. The start address is too
