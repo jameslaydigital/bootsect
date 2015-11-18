@@ -46,7 +46,7 @@ status_error:
     call print_string
     jmp $
 
-num_sectors: db 0x01
+num_sectors: db 0x02
 
 ; Variables
 DISK_ERROR_MSG: db "Disk read error: status = " , 0
