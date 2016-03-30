@@ -7,56 +7,53 @@ seg_two:
 
 main:
     call set_video_mode
-    push 247
-    call set_bg
+    ;push 247
+    ;call set_bg
 
-    push 14
-    push 14
-    push j_bmp
-    push 12
-    call set_character
-    add sp, 6
+    mov word ax, j_bmp
+    mov word [sayhi], ax
+    mov ax, a_bmp
+    mov word [sayhi+2], ax
+    mov ax, m_bmp
+    mov word [sayhi+4], ax
+    mov ax, e_bmp
+    mov word [sayhi+6], ax
+    mov ax, s_bmp
+    mov word [sayhi+8], ax
+    mov ax, space_bmp
+    mov word [sayhi+10], ax
+    mov ax, o_bmp
+    mov word [sayhi+12], ax
+    mov ax, s_bmp
+    mov word [sayhi+14], ax
+    xor ax, ax
+    mov word [sayhi+16], ax
 
-    push 21
-    push a_bmp
-    push 12
-    call set_character
-    add sp, 6
+    push 200/3 ;y
+    push 320/3+14 ;x
+    push word sayhi
+    push 9
+    call set_string
+    add sp, 8
 
-    push 28
-    push m_bmp
-    push 12
-    call set_character
-    add sp, 6
-
-    push 35
-    push e_bmp
-    push 12
-    call set_character
-    add sp, 6
-
-    push 42
-    push s_bmp
-    push 12
-    call set_character
-    add sp, 6
-
-    push 56
-    push o_bmp
-    push 15
-    call set_character
-    add sp, 6
-
-    push 63
-    push s_bmp
-    push 15
+    push 200/3
+    push 320/3
+    push square_bmp
+    push 4
     call set_character
     add sp, 8
 
-    ;sti
+    push 200/3+3
+    push 320/3+3
+    push square_bmp
+    push 5
+    call set_character
+    add sp, 8
 
+    ;; NOW ENTER LONG MODE:
     jmp $
 
+sayhi: times 10 dw 0x0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 times 2048 db 0xf

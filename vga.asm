@@ -33,19 +33,10 @@ set_video_mode:
     int 0x10
     ret
 
-
-
-
-
-
 set_pxl:
-    ;;  set_pxl ( color, x, y )
-    ;;      [ bp + 4 ] color 
-    ;;      [ bp + 6 ] x 
-    ;;      [ bp + 8 ] y 
+    ;; color4, x6, y8
     push bp
     mov bp, sp
-
     mov bx, 0xA000  ;VGA video mem starts at 0xA0000. The start address is too
     mov es, bx
     ;; CALCULATE OFFSET FOR X AND Y
@@ -58,49 +49,133 @@ set_pxl:
     xor cx, cx
     mov cx, [ bp + 4 ]      ; move color to cx
     mov [es:bx], cl    ; actually write to video mem
+    pop bp
+    ret
+
+set_character:
+; color4, bmp6, x8, y10
+    push bp     ;enter
+    mov bp, sp
+    mov bx, [bp+6]  ; the buffer
+    ;; while thing < 0x10
+    .loop:
+    mov ax, [bx]    ; ax = buffer
+    cmp ax, 0x10    ; if ( ax >= 0x10 )
+    jge .end        ; break
+
+        mov ax, [bx]    ; x
+        add ax, [bp+8]  ; add to x offset
+        add bx, 2       ; increment counter
+        mov dx, [bx]    ; y
+        add dx, [bp+10]  ; add to y offset
+        add bx, 2       ; increment counter
+        push dx ; push y first
+        push ax ; then x
+        mov ax, [bp+4]  ; color
+        push ax
+
+        mov word [holding], bx  ; save to local var
+
+        call set_pxl
+        add sp, 6       ; clean up params
+
+        mov word bx, [holding]  ; restore from local var
+
+        jmp .loop
+    .end:
 
     pop bp
     ret
 
-    set_character:
-    ; color4, bmp6, x8, y10
-        push bp     ;enter
-        mov bp, sp
+set_string:
+    ;; color4, buffer_array6, x8, y10
+    push bp
+    mov bp,sp
+    ;;;;;;LOOP SETUP
+    ;;set_character.y = args.y
+    mov word ax, [bp+10] ;y
+    push ax
+    ;;set_character.x = args.x
+    mov word ax, [bp+8]  ;x
+    push ax
+    ;;pointer = args.buffer_array
+    mov ax, [bp+6]      ; ax = sayhi
+    mov [.pointer], ax  ; *pointer = sayhi
+    ;;set_character.char_buff = 0x0
+    push word 0         ; initializes to null
+    ;;set_character.color = args.color
+    mov word ax, [bp+4]
+    push word ax        ;color
 
-        mov bx, [bp+6]  ; the buffer
-        ;; while thing < 0x10
-        .loop:
-        mov ax, [bx]    ; ax = buffer
-        cmp ax, 0x10    ; if ( ax >= 0x10 )
-        jge .end        ; break
+    .loop:
+        ;;set_character.char_buff = *sayhi
+        mov word bx, [.pointer] ; bx = sayhi
+        mov ax, [bx]            ; ax = *sayhi
+        mov word [bp-6], ax     ; push *sayhi
 
-            mov ax, [bx]    ; x
-            add ax, [bp+8]  ; add to x offset
-            add bx, 2       ; increment counter
-            mov dx, [bx]    ; y
-            add dx, [bp+10]  ; add to y offset
-            add bx, 2       ; increment counter
-            push dx ; push y first
-            push ax ; then x
-            mov ax, [bp+4]  ; color
-            push ax
+        call set_character
 
-            mov word [holding], bx  ; save to local var
+        ;;x++
+        mov word bx, [bp-4]
+        add bx, 7
+        mov word [bp-4], bx
 
-            call set_pxl
-            add sp, 6       ; clean up params
+        ;;sayhi++
+        mov word bx, [.pointer]
+        add bx, 2
+        mov word [.pointer], bx
 
-            mov word bx, [holding]  ; restore from local var
+        ;;if *sayhi === 0, break
+        cmp word [bx], 0
+        jne .loop
+    .break:
 
-            jmp .loop
-        .end:
+    add sp, 8
 
-        pop bp
-        ret
-
-
+    jmp .end
+    .pointer: dw 0x0
+    .end:
+    pop bp
+    ret
 
 holding: dw 0x0
+
+space_bmp:
+    dw 0x10, 0x10   ;0x10 is the termination number
+
+square_bmp:
+    dw 0x01, 0x01
+    dw 0x01, 0x02
+    dw 0x01, 0x03
+    dw 0x01, 0x04
+    dw 0x01, 0x05
+
+    dw 0x02, 0x01
+    dw 0x02, 0x02
+    dw 0x02, 0x03
+    dw 0x02, 0x04
+    dw 0x02, 0x05
+
+    dw 0x03, 0x01
+    dw 0x03, 0x02
+    dw 0x03, 0x03
+    dw 0x03, 0x04
+    dw 0x03, 0x05
+
+    dw 0x04, 0x01
+    dw 0x04, 0x02
+    dw 0x04, 0x03
+    dw 0x04, 0x04
+    dw 0x04, 0x05
+
+    dw 0x05, 0x01
+    dw 0x05, 0x02
+    dw 0x05, 0x03
+    dw 0x05, 0x04
+    dw 0x05, 0x05
+
+    dw 0x10, 0x10   ;0x10 is the termination number
+
 
 z_bmp:
     dw 0x01, 0x00
