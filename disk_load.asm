@@ -22,6 +22,7 @@ disk_load :
 
     mov ax, READ_SUCCESS
     call print_string
+    call print_newline
     ret
 
 disk_error :
@@ -44,6 +45,7 @@ disk_error :
 status_error:
     mov ax, STATUS_ERROR
     call print_string
+    call print_newline
     jmp $
 
 num_sectors: db 0x04
@@ -61,4 +63,3 @@ READ_SUCCESS: db 'Read success! ', 0
 ;DL  Drive
 ;ES:BX   Buffer Address Pointer
 
-%include "print.asm"

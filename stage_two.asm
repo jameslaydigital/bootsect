@@ -2,58 +2,186 @@
 [org 0x9000]
 seg_two:
     jmp main
+
+%include "gdt.asm"
 %include "print.asm"
-%include "vga.asm"
+
+loaded_msg: db 'Main bootloader successfully loaded.', 0
+setting_a20_msg: db 'Managing the A20 line...', 0
+loading_gdt_msg: db 'Loading global descriptor table.', 0
+entering_pmode_msg: db 'Entering 32-bit protected mode...', 0
+test: db 'testing', 0
+a20_done_msg: db 'A20 line finished.', 0
 
 main:
-    call set_video_mode
-    ;push 247
-    ;call set_bg
+    call print_newline
+    mov ax, loaded_msg
+    call print_string
+    call print_newline
 
-    mov word ax, j_bmp
-    mov word [sayhi], ax
-    mov ax, a_bmp
-    mov word [sayhi+2], ax
-    mov ax, m_bmp
-    mov word [sayhi+4], ax
-    mov ax, e_bmp
-    mov word [sayhi+6], ax
-    mov ax, s_bmp
-    mov word [sayhi+8], ax
-    mov ax, space_bmp
-    mov word [sayhi+10], ax
-    mov ax, o_bmp
-    mov word [sayhi+12], ax
-    mov ax, s_bmp
-    mov word [sayhi+14], ax
-    xor ax, ax
-    mov word [sayhi+16], ax
+    mov ax, setting_a20_msg
+    call print_string
+    call print_newline
+    call set_A20
 
-    push 200/3 ;y
-    push 320/3+14 ;x
-    push word sayhi
-    push 9
-    call set_string
-    add sp, 8
+    ;mov ax, loading_gdt_msg
+    ;call print_string
+    ;call print_newline
 
-    push 200/3
-    push 320/3
-    push square_bmp
-    push 4
-    call set_character
-    add sp, 8
+    ;mov ax, entering_pmode_msg
+    ;call print_string
+    ;call print_newline
+    ;jmp enter32
 
-    push 200/3+3
-    push 320/3+3
-    push square_bmp
-    push 5
-    call set_character
-    add sp, 8
 
-    ;; NOW ENTER LONG MODE:
     jmp $
 
-sayhi: times 10 dw 0x0
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+set_A20:
+;DOCUMENTATION FOR THE KEYBOARD CONTROLLER
+;
+;┌──────────────────────────────────────────┐
+;│       PORT MAPPING                       │
+;├─────┬───────┬────────────────────────────┤
+;│PORT │ R/W   │ DESCRIPTON                 │
+;├─────┼───────┼────────────────────────────┤
+;│0x60 │ R+W   │ Read/Write Data            │
+;│0x64 │ R     │ Read Status Register       │
+;│0x64 │ W     │ Send Command to controller │
+;└─────┴───────┴────────────────────────────┘
+;
+;┌────────────────────────────────────────────────────────────┐
+;│Keyboard Controller Commands                                │
+;├──────────────────┬─────────────────────────────────────────┤
+;│KEYBOARD COMMAND  │ DESCRIPTON                              │
+;├──────────────────┼─────────────────────────────────────────┤
+;│  0x20            │ Read Keyboard Controller Command Byte   │
+;│  0x60            │ Write Keyboard Controller Command Byte  │
+;│  0xAA            │ Self Test                               │
+;│  0xAB            │ Interface Test                          │
+;│  0xAD            │ Disable Keyboard                        │
+;│  0xAE            │ Enable Keyboard                         │
+;│  0xC0            │ Read Input Port                         │
+;│  0xD0            │ Read Output Port                        │
+;│  0xD1            │ Write Output Port                       │
+;│  0xDD            │ Enable A20 Address Line                 │
+;│  0xDF            │ Disable A20 Address Line                │
+;│  0xE0            │ Read Test Inputs                        │
+;│  0xFE            │ System Reset                            │
+;└──────────────────┴─────────────────────────────────────────┘
+;
+;  ┌─Bit 0: Output Buffer Status
+;  │     ├─ 0: Output buffer empty, dont read yet
+;  │     └─ 1: Output buffer full, please read me :)
+;  │
+;  ├─Bit 1: Input Buffer Status
+;  │     ├─ 0: Input buffer empty, can be written
+;  │     └─ 1: Input buffer full, dont write yet
+;  │
+;  ├─Bit 2: System flag
+;  │     ├─ 0: Set after power on reset
+;  │     └─ 1: Set after successfull completion of the keyboard controllers
+;  │           self-test (Basic Assurance Test, BAT)
+;  │
+;  ├─Bit 3: Command Data
+;  │     ├─ 0: Last write to input buffer was data (via port 0x60)
+;  │     └─ 1: Last write to input buffer was a command (via port 0x64)
+;  │
+;  ├─Bit 4: Keyboard Locked
+;  │     ├─ 0: Locked
+;  │     └─ 1: Not locked
+;  │
+;  ├─Bit 5: Auxiliary Output buffer full
+;  │     ├─ PS/2 Systems:
+;  │     │   ├─ 0: Determins if read from port 0x60 is valid If valid,
+;  │     │   │     0=Keyboard data
+;  │     │   └─ 1: Mouse data, only if you can read from port 0x60
+;  │     └─ AT Systems:
+;  │         ├─ 0: OK flag
+;  │         └─ 1: Timeout on transmission from keyboard controller to
+;  │               keyboard. This may indicate no keyboard is present.
+;  │
+;  ├─Bit 6: Timeout
+;  │     ├─ 0: OK flag
+;  │     ├─ 1: Timeout
+;  │     ├─ PS/2:
+;  │     │   └─ General Timeout
+;  │     └─ AT:
+;  │         └─ Timeout on transmission from keyboard to keyboard controller.
+;  │            Possibly parity error (In which case both bits 6 and 7 are set)
+;  │
+;  └─Bit 7: Parity error
+;        ├─ 0: OK flag, no error
+;        └─ 1: Parity error with last byte
+
+
+    pusha
+
+    call print_newline
+
+    call    .empty_8042
+    mov     al,0xd1     ;command write
+    out     0x64,al
+    call    .empty_8042
+    mov     al,0xdf     ;A20 on
+    out     0x60,al
+    call    .empty_8042
+
+    mov ax, a20_done_msg
+    call print_string
+    call print_newline
+
+    popa
+    ret
+
+    .empty_8042:
+        ;call   delay
+        in      al,0x64
+        push ax
+        xor ah, ah
+        call print_hex
+        call print_newline
+        test    al,2
+        jnz     .empty_8042
+        ret
+
+enter32:
+    ;SETUP SEGMENTS AND STACK:
+    cli
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    mov ax, 0x8000
+    mov ss, ax
+    mov sp, 0xFFFF ;; stack starts at 0xFFFF 
+                   ;; and works down to 0x8000
+    sti
+
+    ;LOAD GDT:
+    cli
+    lgdt [toc]
+    sti
+
+
+    ;SWITCH TO 32-BIT PROTECTED MODE:
+    ;lsb of cr0 is switch for 32 bit mode.
+    cli
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
+
+    jmp 0x8:Stage3  ; far jump to fix CS.
+
+[bits 32]
+Stage3:
+    ;SET REGISTERS
+    mov ax, 0x10
+    mov ds, ax
+    mov ss, ax
+    mov es, ax
+    mov esp, 0x90000
+
+STOP:
+    cli
+    hlt
+
 times 2048 db 0xf

@@ -1,4 +1,5 @@
 print_char:
+    ;print_char(char al)
     pusha
         mov ah, 0x0e
         int 0x10
@@ -6,6 +7,7 @@ print_char:
     ret
 
 print_string:
+    ;print_string(buffer ax)
     pusha           ; preserve the registers 
                     ; on the stack.
     mov bx, ax
@@ -21,27 +23,35 @@ print_string:
     popa
     ret
 
-print_hex_char:
-    pusha
-    print_hex_loop:
+print_newline:
+    ;print_newline()
+    push ax
+    mov ax, newline_buffer
+    call print_string
+    pop ax
+    ret
 
+__print_hex_char:
+    ;__print_hex_char(char al)
+    pusha
+    .print_hex_loop:
         ;print a single hex digit
         cmp al, 0x9
         jg a_thru_f
         zero_thru_nine:
             add al, '0'
             call print_char
-            jmp print_hex_char_end
+            jmp __print_hex_char_end
         a_thru_f:
             add al, 'A'-0xA
             call print_char
 
-    print_hex_char_end:
+    __print_hex_char_end:
     popa
     ret
 
 print_hex:
-
+    ;print_hex(uint16 ax)
     pusha
 
         ;note on little-endianness:
@@ -53,7 +63,6 @@ print_hex:
         ;   Moral of the story --
         ;   If you print, you need to
         ;   print AH first.
-
 
         mov bl, al
         and bl, 0xF
@@ -76,16 +85,16 @@ print_hex:
         call print_char
 
         mov al, ch
-        call print_hex_char
+        call __print_hex_char
 
         mov al, cl
-        call print_hex_char
+        call __print_hex_char
 
         mov al, bh
-        call print_hex_char
+        call __print_hex_char
 
         mov al, bl
-        call print_hex_char
+        call __print_hex_char
 
         mov al, ' '
         call print_char
@@ -93,3 +102,4 @@ print_hex:
     popa
     ret
 
+newline_buffer: db 0x0a, 0x0d, 0

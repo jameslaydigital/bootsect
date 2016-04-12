@@ -16,21 +16,20 @@ start:
 
     cld            ; Set the direction flag to be positive direction
 
-    ; my version
-    ;xor ax, ax          ; nullify ax so we can set 
-    ;mov ds, ax          ; ds to 0
-    ;mov sp, bp          ; relatively out of the way
-    ;mov bp, 0x8000      ; set up the stack
+    ;;let users know the next bootloader is loading
+    mov ax, loading_phase_1
+    call print_string
 
-    pusha
-    mov ah, 0x0e
-    mov al, 0x0e
-    int 0x10
-    popa
+    call print_newline
 
     call disk_load      ; load the new instructions
                         ; at 0x9000
     jmp LOAD_ADDR
+
+%include "print.asm"
 %include "disk_load.asm"
+
+loading_phase_1: db 'Loading bootloader phase 1', 0
+
 times 510 - ($ - $$) db 0
 dw 0xaa55 ;; end of bootsector
