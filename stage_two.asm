@@ -1,42 +1,40 @@
 [bits 16]
-[org 0x9000]
+;[org 0x9000]
 seg_two:
+    ;;set the segment registers
+    mov ax, 0x900
+    mov ds, ax
+    mov es, ax
     jmp main
 
 %include "gdt.asm"
 %include "print.asm"
 
-loaded_msg: db 'Main bootloader successfully loaded.', 0
-setting_a20_msg: db 'Managing the A20 line...', 0
-loading_gdt_msg: db 'Loading global descriptor table.', 0
-entering_pmode_msg: db 'Entering 32-bit protected mode...', 0
 test: db 'testing', 0
-a20_done_msg: db 'A20 line finished.', 0
+string_a: db 'checking status register: ', 0
 
 main:
     call print_newline
-    mov ax, loaded_msg
+    mov ax, string_a
     call print_string
     call print_newline
 
-    mov ax, setting_a20_msg
-    call print_string
-    call print_newline
-    call set_A20
-
-    ;mov ax, loading_gdt_msg
-    ;call print_string
-    ;call print_newline
-
-    ;mov ax, entering_pmode_msg
-    ;call print_string
-    ;call print_newline
-    ;jmp enter32
-
+    ;call enable_A20
+    mov ax, 0x0004 
+    call print_binary_byte
 
     jmp $
 
-set_A20:
+enable_A20:
+    cli
+
+    in ax, 0x60
+    call print_hex
+    call print_newline
+    
+
+    ret
+
 ;DOCUMENTATION FOR THE KEYBOARD CONTROLLER
 ;
 ;┌──────────────────────────────────────────┐
@@ -113,36 +111,6 @@ set_A20:
 ;        ├─ 0: OK flag, no error
 ;        └─ 1: Parity error with last byte
 
-
-    pusha
-
-    call print_newline
-
-    call    .empty_8042
-    mov     al,0xd1     ;command write
-    out     0x64,al
-    call    .empty_8042
-    mov     al,0xdf     ;A20 on
-    out     0x60,al
-    call    .empty_8042
-
-    mov ax, a20_done_msg
-    call print_string
-    call print_newline
-
-    popa
-    ret
-
-    .empty_8042:
-        ;call   delay
-        in      al,0x64
-        push ax
-        xor ah, ah
-        call print_hex
-        call print_newline
-        test    al,2
-        jnz     .empty_8042
-        ret
 
 enter32:
     ;SETUP SEGMENTS AND STACK:
