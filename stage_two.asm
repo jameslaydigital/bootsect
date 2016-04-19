@@ -12,6 +12,9 @@ seg_two:
 
 test: db 'testing', 0
 string_a: db 'checking status register: ', 0
+string_b: db 'waiting for status ready...', 0
+string_c: db 'status ready', 0
+string_d: db '0x60 is ', 0
 
 main:
     mov ax, 0x900
@@ -22,10 +25,79 @@ main:
     mov ax, string_a
     call print_string
     call print_newline
-    mov ax, 1000110011101111b
-    call print_binary_word
+    call enable_a20
     jmp $
 
+
+enable_a20:
+    pusha
+    mov ax, string_b
+    call print_string
+    call print_newline
+
+    mov ax, string_d
+    call print_string
+    call read_0x60
+    call print_binary_byte
+    call print_newline
+
+    mov ax, string_c
+    call print_string
+    call print_newline
+
+    popa
+    ret
+
+write_0x60:
+    ;;void write_0x60(command ax)
+    pusha
+
+    call wait_0x60_writable
+    out ax, 0x60
+
+    popa
+    ret
+
+read_0x60:
+    ;;ax = read_0x60()
+    pusha
+    
+    call wait_0x60_readable
+    in ax, 0x60
+    popa
+    ret
+
+wait_0x60_readable:
+    ;;void wait_0x60_readable()
+    pusha
+
+    ;while ( ax & 0001b == 0 ) wait; else return
+    .start:
+    xor ax, ax
+    in ax, 0x64
+    call print_binary_byte
+    call print_newline
+    test ax, 0001b ;lsb = output buff status
+    jnz .start
+
+    popa
+    ret
+
+wait_0x60_writable:
+    ;;void wait_0x60_writable()
+    pusha
+
+    ;while ( ax & 0010b == 0 ) wait; else return
+    .start:
+    xor ax, ax
+    in ax, 0x64
+    call print_binary_byte
+    call print_newline
+    test ax, 0010b ;2nd lsb = input buff stat
+    jnz .start
+
+    popa
+    ret
 
 ;DOCUMENTATION FOR THE KEYBOARD CONTROLLER
 ;

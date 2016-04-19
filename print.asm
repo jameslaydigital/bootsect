@@ -102,6 +102,34 @@ print_hex:
     popa
     ret
 
+print_binary_byte:
+    ;;void print_binary_byte(uint8 al)
+    pusha
+
+    mov bl, al
+    mov cl, 10000000b
+    .start:
+    ;;while ( c > 0 ) {
+    cmp cl, 0
+    jz .end
+    ;;  if ( bl & c > 0 ) echo 1
+    ;;  else echo 0
+    test bl, cl
+    mov ax, '1'  ;;ax = 1
+    jnz .not_zero
+    mov ax, '0' ;;ax = 0
+    .not_zero:
+    call print_char
+
+    ;;  c = c >> 1
+    shr cl, 1
+
+    jmp .start
+
+    .end:
+    popa
+    ret
+
 print_binary_word:
     ;;void print_binary_byte(uint16 ax)
     pusha
