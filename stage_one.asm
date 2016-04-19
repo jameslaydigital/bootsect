@@ -17,9 +17,9 @@ start:
     cld            ; Set the direction flag to be positive direction
 
     ;;let users know the next bootloader is loading
+    call print_newline
     mov ax, loading_phase_1
     call print_string
-
     call print_newline
 
     call disk_load      ; load the new instructions

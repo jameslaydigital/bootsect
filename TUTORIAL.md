@@ -1,3 +1,10 @@
+Useful Links
+============
+
+- (Info on nasm mnemonics:)[http://www.posix.nl/linuxassembly/nasmdochtml/nasmdoca.html#section-A.107]
+- (Info on PS/2 Controller:)[http://wiki.osdev.org/%228042%22_PS/2_Controller#PS.2F2_Controller_IO_Ports]
+- (Info on A20 Line:)[http://wiki.osdev.org/A20_Line#Keyboard_Controller_2]
+
 Descriptor Tables
 =================
 

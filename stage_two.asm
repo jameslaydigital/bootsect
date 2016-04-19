@@ -1,17 +1,17 @@
 [bits 16]
 ;[org 0x9000]
 seg_two:
+    ;;set the segment registers
+    mov ax, 0x900
+    mov ds, ax
+    mov es, ax
     jmp main
 
 %include "gdt.asm"
 %include "print.asm"
 
-loaded_msg: db 'Main bootloader successfully loaded.', 0
-setting_a20_msg: db 'Managing the A20 line...', 0
-loading_gdt_msg: db 'Loading global descriptor table.', 0
-entering_pmode_msg: db 'Entering 32-bit protected mode...', 0
 test: db 'testing', 0
-a20_done_msg: db 'A20 line finished.', 0
+string_a: db 'checking status register: ', 0
 
 main:
     mov ax, 0x900
@@ -19,12 +19,25 @@ main:
     mov ax, 0xF000
     mov ss, ax
     call print_newline
-    mov ax, loaded_msg
+    mov ax, string_a
     call print_string
     call print_newline
+    ;call enable_A20
+    mov ax, 0x0004 
+    call print_binary_byte
+
     jmp $
 
-set_A20:
+enable_A20:
+    cli
+
+    in ax, 0x60
+    call print_hex
+    call print_newline
+    
+
+    ret
+
 ;DOCUMENTATION FOR THE KEYBOARD CONTROLLER
 ;
 ;┌──────────────────────────────────────────┐

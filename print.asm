@@ -102,4 +102,49 @@ print_hex:
     popa
     ret
 
+print_binary_byte:
+    ;;void print_binary_byte(uint16 ax)
+    pusha
+
+    mov bx, ax ; copy to bx so we can use ax
+
+    ;;c = 128
+    ;;while ( c > 0 ) {
+    ;;  if ( bx & c > 0 ) echo 1
+    ;;  else echo 0
+    ;;  c = c / 2 //non float can divide to 0
+    ;;}
+
+    ;;c = 1
+    mov cx, 128
+
+    .start:
+    ;;while ( c > 0 ) {
+    cmp cx, 0x100
+    jge .end
+
+    ;;  if ( bx & c > 0 ) echo 1
+    ;;  else echo 0
+    test bx, cx
+    mov ax, '1'  ;;ax = 1
+    jnz .not_zero
+    mov ax, '0' ;;ax = 0
+    .not_zero:
+    call print_char
+
+    ;;  c = c * 2
+    mov ax, 2
+    mul cx
+    mov cx, ax
+
+    jmp .start
+
+
+    .end:
+    popa
+    ret
+
 newline_buffer: db 0x0a, 0x0d, 0
+;A.25  = div
+;A.107 = mul
+;A.160 = test
