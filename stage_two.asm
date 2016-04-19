@@ -1,5 +1,5 @@
 [bits 16]
-[org 0x9000]
+;[org 0x9000]
 seg_two:
     jmp main
 
@@ -14,26 +14,14 @@ test: db 'testing', 0
 a20_done_msg: db 'A20 line finished.', 0
 
 main:
+    mov ax, 0x900
+    mov ds, ax
+    mov ax, 0xF000
+    mov ss, ax
     call print_newline
     mov ax, loaded_msg
     call print_string
     call print_newline
-
-    mov ax, setting_a20_msg
-    call print_string
-    call print_newline
-    call set_A20
-
-    ;mov ax, loading_gdt_msg
-    ;call print_string
-    ;call print_newline
-
-    ;mov ax, entering_pmode_msg
-    ;call print_string
-    ;call print_newline
-    ;jmp enter32
-
-
     jmp $
 
 set_A20:
@@ -143,45 +131,5 @@ set_A20:
         test    al,2
         jnz     .empty_8042
         ret
-
-enter32:
-    ;SETUP SEGMENTS AND STACK:
-    cli
-    xor ax, ax
-    mov ds, ax
-    mov es, ax
-    mov ax, 0x8000
-    mov ss, ax
-    mov sp, 0xFFFF ;; stack starts at 0xFFFF 
-                   ;; and works down to 0x8000
-    sti
-
-    ;LOAD GDT:
-    cli
-    lgdt [toc]
-    sti
-
-
-    ;SWITCH TO 32-BIT PROTECTED MODE:
-    ;lsb of cr0 is switch for 32 bit mode.
-    cli
-    mov eax, cr0
-    or eax, 1
-    mov cr0, eax
-
-    jmp 0x8:Stage3  ; far jump to fix CS.
-
-[bits 32]
-Stage3:
-    ;SET REGISTERS
-    mov ax, 0x10
-    mov ds, ax
-    mov ss, ax
-    mov es, ax
-    mov esp, 0x90000
-
-STOP:
-    cli
-    hlt
 
 times 2048 db 0xf
