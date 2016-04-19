@@ -16,16 +16,14 @@ string_a: db 'checking status register: ', 0
 main:
     mov ax, 0x900
     mov ds, ax
-    mov ax, 0xF000
-    mov ss, ax
+    mov es, ax
+
     call print_newline
     mov ax, string_a
     call print_string
     call print_newline
-    ;call enable_A20
-    mov ax, 0x0004 
-    call print_binary_byte
-
+    mov ax, 1000110011101111b
+    call print_binary_word
     jmp $
 
 

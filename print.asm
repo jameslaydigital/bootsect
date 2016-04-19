@@ -102,7 +102,7 @@ print_hex:
     popa
     ret
 
-print_binary_byte:
+print_binary_word:
     ;;void print_binary_byte(uint16 ax)
     pusha
 
@@ -115,13 +115,14 @@ print_binary_byte:
     ;;  c = c / 2 //non float can divide to 0
     ;;}
 
-    ;;c = 1
-    mov cx, 128
+    ;;c = 128
+    mov cx, 1000000000000000b
+    ;65536 32768 16384 8192 4096 2048 1024 512 256 128 64 32 16 8 4 2 1
 
     .start:
     ;;while ( c > 0 ) {
-    cmp cx, 0x100
-    jge .end
+    cmp cx, 0
+    jz .end
 
     ;;  if ( bx & c > 0 ) echo 1
     ;;  else echo 0
@@ -132,13 +133,10 @@ print_binary_byte:
     .not_zero:
     call print_char
 
-    ;;  c = c * 2
-    mov ax, 2
-    mul cx
-    mov cx, ax
+    ;;  c = c >> 1
+    shr cx, 1
 
     jmp .start
-
 
     .end:
     popa
