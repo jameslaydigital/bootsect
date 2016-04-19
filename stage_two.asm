@@ -28,15 +28,6 @@ main:
 
     jmp $
 
-enable_A20:
-    cli
-
-    in ax, 0x60
-    call print_hex
-    call print_newline
-    
-
-    ret
 
 ;DOCUMENTATION FOR THE KEYBOARD CONTROLLER
 ;
@@ -113,36 +104,5 @@ enable_A20:
 ;  └─Bit 7: Parity error
 ;        ├─ 0: OK flag, no error
 ;        └─ 1: Parity error with last byte
-
-
-    pusha
-
-    call print_newline
-
-    call    .empty_8042
-    mov     al,0xd1     ;command write
-    out     0x64,al
-    call    .empty_8042
-    mov     al,0xdf     ;A20 on
-    out     0x60,al
-    call    .empty_8042
-
-    mov ax, a20_done_msg
-    call print_string
-    call print_newline
-
-    popa
-    ret
-
-    .empty_8042:
-        ;call   delay
-        in      al,0x64
-        push ax
-        xor ah, ah
-        call print_hex
-        call print_newline
-        test    al,2
-        jnz     .empty_8042
-        ret
 
 times 2048 db 0xf
