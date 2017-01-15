@@ -1,6 +1,7 @@
 [bits 16]
 [org 0x7c00]
-LOAD_ADDR: equ 0x9000   ; This is where I'm loading the 2nd stage in RAM.
+REAL_LOAD_ADDR: equ 0x9000   ; This is where I'm loading the 2nd stage in RAM.
+LOAD_ADDR: equ 0x900   ; This is where I'm loading the 2nd stage in RAM.
 
 start:
 
@@ -16,6 +17,9 @@ start:
 
     cld            ; Set the direction flag to be positive direction
 
+    mov ax, start
+    call print_hex
+
     ;;let users know the next bootloader is loading
     call print_newline
     mov ax, loading_phase_1
@@ -24,7 +28,7 @@ start:
 
     call disk_load      ; load the new instructions
                         ; at 0x9000
-    jmp LOAD_ADDR
+    jmp 0000:0x9000     ; will take you to 0x9000 and set CS register automatically
 
 %include "print.asm"
 %include "disk_load.asm"
