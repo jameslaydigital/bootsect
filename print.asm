@@ -4,32 +4,39 @@ print_char:
         mov ah, 0x0e
         int 0x10
     popa
-    ret
+    retf
 
 print_string:
     ;print_string(buffer ax)
     pusha           ; preserve the registers 
                     ; on the stack.
+
     mov bx, ax
     .print_string_loop:
         mov al, [bx]            ;move buffer character to al
         cmp al, 0               ;if [[ al == 0 ]]; then
         je .print_string_end    ;   goto .print_string_end
         inc bx                  ;else bx++
-        call print_char
+        call 0x7c0:print_char
         jmp .print_string_loop  ;   goto .print_string_loop
 
     .print_string_end:
     popa
-    ret
+    retf
 
 print_newline:
     ;print_newline()
     push ax
-    mov ax, newline_buffer
-    call print_string
+
+    mov al, 0x0a
+    mov ah, 0x0e
+    int 0x10
+    mov al, 0x0d
+    mov ah, 0x0e
+    int 0x10
+
     pop ax
-    ret
+    retf
 
 __print_hex_char:
     ;__print_hex_char(char al)
@@ -40,11 +47,11 @@ __print_hex_char:
         jg a_thru_f
         zero_thru_nine:
             add al, '0'
-            call print_char
+            call 0x7c0:print_char
             jmp __print_hex_char_end
         a_thru_f:
             add al, 'A'-0xA
-            call print_char
+            call 0x7c0:print_char
 
     __print_hex_char_end:
     popa
@@ -82,7 +89,7 @@ print_hex:
         call print_char
 
         mov al, 'x'
-        call print_char
+        call 0x7c0:print_char
 
         mov al, ch
         call __print_hex_char
@@ -97,10 +104,10 @@ print_hex:
         call __print_hex_char
 
         mov al, ' '
-        call print_char
+        call 0x7c0:print_char
 
     popa
-    ret
+    retf
 
 print_binary_word:
     ;;void print_binary_byte(uint16 ax)
@@ -131,7 +138,7 @@ print_binary_word:
     jnz .not_zero
     mov ax, '0' ;;ax = 0
     .not_zero:
-    call print_char
+    call 0x7c0:print_char
 
     ;;  c = c >> 1
     shr cx, 1
@@ -140,7 +147,7 @@ print_binary_word:
 
     .end:
     popa
-    ret
+    retf
 
 newline_buffer: db 0x0a, 0x0d, 0
 ;A.25  = div
