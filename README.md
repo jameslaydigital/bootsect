@@ -1,8 +1,14 @@
 # bootsect
-just another assembly x86 BIOS bootloader
+Just another assembly x86 BIOS bootloader
 
 ###build process
-The relevant files are `stage_one.asm` and `stage_two.asm`. `stage_one.asm` is the MBR, which functionally loads `stage_two.asm` into memory.  
+The relevant file is `bootloader.asm`, which contains the MBR and subsequent
+sectors.  
 
-To build and run the emulator, I run `build.sh`. `build.sh` compiles stage one and stage two to `stage_one.bin` and `stage_two.bin` respectively.  Then it concatenates them in that order to `raw.bin`.  
+To build and run the emulator, I run `build.sh`. `build.sh` assembles asm into
+a raw binary "disk", then runs it with qemu.  
 
+When you build a kernel, you'll want to concatenate the resulting binary data
+to raw.bin, so it can be loaded into memory by the bootloader.  
+
+For additional information, check [./TUTORIAL.md](the accompanying tutorial).

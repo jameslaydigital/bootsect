@@ -13,6 +13,9 @@ Useful Links
 
     http://wiki.osdev.org/A20_Line#Keyboard_Controller_2
 
+- General reading
+
+    http://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf
 
 Descriptor Tables
 =================
@@ -32,7 +35,7 @@ We segment mem for two reasons:
 
 
 The GDT defines segments by using "descriptors".
-A descriptor is an 8-byte data structure. There are three:
+A descriptor is an 8-byte data structure. There are (at least) three:
 
 - Null Descriptor (all zeroes)
 - Code Descriptor
@@ -46,10 +49,9 @@ its segment definitions.
 
 At any time, you can specify a new GDT and run LGDT to redefine segments.
 
-
-
-The simplest GDT will define one segment that covers all available memory.
-
+The simplest GDT will define overlapping code and data segments that cover all
+available memory. This basically gives us a flat memory model, which the kernel
+will manage when it is loaded.
 
     ; null descriptor 
         dd 0                ; null descriptor--just fill 8 bytes with zero
@@ -75,3 +77,4 @@ The simplest GDT will define one segment that covers all available memory.
         db 10010010b        ; access
         db 11001111b        ; granularity
         db 0                ; base high
+
